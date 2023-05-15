@@ -34,7 +34,7 @@ public class User {
     public String email;
 
     // Поле - соль
-    @JsonIgnore
+
     @Column(name = "salt")
     public String salt;
 

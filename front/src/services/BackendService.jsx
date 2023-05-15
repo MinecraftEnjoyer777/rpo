@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios'
 import Utils from "../utils/Utils";
 import {alertActions, store} from "../utils/Rdx";
 const API_URL = 'http://localhost:8080/api/v1'
@@ -43,5 +43,21 @@ class BackendService {
     }
 }
 
+    /* Countries */
+    retrieveAllCountries(page, limit) {
+        return axios.get(`${API_URL}/countries`);
+    }
+    retrieveCountry(id) {
+        return axios.get(`${API_URL}/countries/${id}`);
+    }
+    createCountry(country) {
+        return axios.post(`${API_URL}/countries`, country);
+    }
+    updateCountry(country) {
+        return axios.put(`${API_URL}/countries/${country.id}`, country);
+    }
+    deleteCountries(countries) {
+        return axios.post(`${API_URL}/deletecountries`, countries);
+    }
 // eslint-disable-next-line import/no-anonymous-default-export
 export default new BackendService();
