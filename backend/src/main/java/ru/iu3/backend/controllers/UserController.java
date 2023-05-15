@@ -7,16 +7,19 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.iu3.backend.models.Museum;
+
 import ru.iu3.backend.models.User;
 import ru.iu3.backend.repositories.MuseumRepository;
 import ru.iu3.backend.repositories.UserRepository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import java.util.*;
+import ru.iu3.backend.tools.DataValidationException;
+import ru.iu3.backend.tools.Utils;
 
-/**
- * Класс - контроллер пользователя
- * @author artem
- */
+import javax.validation.Valid;
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("api/v1")
 public class UserController {
@@ -32,8 +35,14 @@ public class UserController {
      * @return - список пользователей в виде JSON
      */
     @GetMapping("/users")
-    public List getAllUsers() {
-        return usersRepository.findAll();
+        public Page<User> getAllUsers(@RequestParam("page") int page, @RequestParam("limit") int limit) {
+        return userRepository.findAll(PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "login")));
+    }
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUser(@PathVariable(value = "id") Long userId)
+            throws DataValidationException {
+        User user = userRepository.findById(userId).orElseThrow(()->new DataValidationException("Пользователь с таким индексом не найден"));
+        return ResponseEntity.ok(user);
     }
 
     /**

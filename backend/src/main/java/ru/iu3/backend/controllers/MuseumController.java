@@ -6,15 +6,21 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import ru.iu3.backend.models.Museum;
+import ru.iu3.backend.models.Country;
 import ru.iu3.backend.models.Painting;
 import ru.iu3.backend.repositories.MuseumRepository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import java.util.*;
+import ru.iu3.backend.tools.DataValidationException;
 
+import javax.validation.Valid;
 
 /**
  * Класс - контроллер музея
  */
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("api/v1")
 public class MuseumController {
@@ -27,8 +33,14 @@ public class MuseumController {
      * @return - список музеев, представленный в формате JSON
      */
     @GetMapping("/museums")
-    public List getAllCountries() {
-        return museumRepository.findAll();
+	public Page<Museum> getAllMuseums(@RequestParam("page") int page, @RequestParam("limit") int limit) {
+        return museumRepository.findAll(PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "name")));
+    }
+    @GetMapping("/museums/{id}")
+    public ResponseEntity<Museum> getMuseum(@PathVariable(value = "id") Long museumId)
+            throws DataValidationException {
+        Museum museum = museumRepository.findById(museumId).orElseThrow(()->new DataValidationException("Музей с таким индексом не найден"));
+        return ResponseEntity.ok(museum);
     }
 
     /**
@@ -53,22 +65,17 @@ public class MuseumController {
      * @return - статус (ОК/НЕ ОК)
      */
     @PostMapping("/museums")
-    public ResponseEntity<Object> createMuseum(@RequestBody Museum museum) throws Exception {
+    public ResponseEntity<Object> createMuseum(@RequestBody Museum museum) throws DataValidationException {
         try {
             // Попытка сохранить что-либо в базу данных
             Museum newMusem = museumRepository.save(museum);
             return new ResponseEntity<Object>(newMusem, HttpStatus.OK);
         } catch (Exception exception) {
             // Указываем тип ошибки
-            String error;
-            if (exception.getMessage().contains("ConstraintViolationException")) {
-                error = "museumAlreadyExists";
-            } else {
-                error = exception.getMessage();
-            }
-            Map<String, String> map = new HashMap<>();
-            map.put("error", error + "\n");
-            return ResponseEntity.ok(map);
+            if (exception.getMessage().contains("museum.name_UNIQUE"))
+                throw new DataValidationException("Этот музей уже есть в базе");
+            else
+                throw new DataValidationException("Неизвестная ошибка");
         }
     }
     /**

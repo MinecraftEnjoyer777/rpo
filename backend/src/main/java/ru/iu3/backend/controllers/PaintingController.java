@@ -11,7 +11,10 @@ import ru.iu3.backend.models.Museum;
 import ru.iu3.backend.models.Painting;
 import ru.iu3.backend.repositories.PaintingRepository;
 import ru.iu3.backend.repositories.MuseumRepository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import ru.iu3.backend.tools.DataValidationException;
 
 import java.util.*;
 
@@ -20,6 +23,7 @@ import java.util.*;
  * Класс - контроллер модели картин
  * Класс - контроллер картин
  */
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("api/v1")
 public class PaintingController {
@@ -38,7 +42,14 @@ public class PaintingController {
     public List getAllPaintings() {
         return paintingRepository.findAll();
     }
-
+	@GetMapping("/paintings/{id}")
+    public ResponseEntity getPainting(@PathVariable(value = "id") Long paintingId)
+        throws DataValidationException
+    {
+            Painting painting = paintingRepository.findById(paintingId)
+                    .orElseThrow(()-> new DataValidationException("Картина с таким индексом не найдена"));
+        return ResponseEntity.ok(painting);
+    }
     /**
      * Метод, который добавляет картины в базу данных
      * @param painting - картины

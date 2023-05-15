@@ -8,13 +8,17 @@ import ru.iu3.backend.models.*;
 import ru.iu3.backend.repositories.ArtistRepository;
 import ru.iu3.backend.repositories.CountryRepository;
 
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import java.util.*;
-
+import ru.iu3.backend.tools.DataValidationException;
+import javax.validation.Valid;
 /**
  * Метод, который отражает логику работы таблицы художников
  */
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("api/v1")
 public class ArtistController {
     // Здесь используется два репозитория: репозиторий артистов и репозиторий стран
@@ -32,10 +36,18 @@ public class ArtistController {
         return artistsRepository.findAll();
     }
 
-
+    public Page getAllArtists(@RequestParam("page") int page, @RequestParam("limit") int limit) {
+        return artistsRepository.findAll(PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "name")));
     @GetMapping("/artists/{id}/paintings")
     public ResponseEntity<Object> getMuseumsFromArtist(@PathVariable(value = "id") Long artistID) {
         Optional<Artist> optionalArtists = artistsRepository.findById(artistID);
+	@GetMapping("/artists/{id}")
+    public ResponseEntity getArtist(@PathVariable(value = "id") Long artistId)
+            throws DataValidationException {
+        Artist artist = artistsRepository.findById(artistId)
+                .orElseThrow(() -> new DataValidationException("Художник с таким индексом не найден"));
+        return ResponseEntity.ok(artist);
+    }
 
         if (optionalArtists.isPresent()) {
             return ResponseEntity.ok(optionalArtists.get().paintings);
